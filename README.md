@@ -2,7 +2,7 @@
 
 **The Steiner-Parker filter of Sofia Vallejo, a nonlinear wave digital model of the Yusynth Steiner-Parker VCF, written in Faust, checked sample by sample against the plugin's own C++, and built as a JUCE plugin (faust2juce) and a web page (faust-rs, WebAssembly) with the original faceplate.**
 
-*Version française : [README.fr.md](README.fr.md).*
+*Version française : [README.fr.md](README.fr.md).* · **Play it in the browser: https://sletz.github.io/faust-steiner-parker/**
 
 The [original](https://github.com/sofiavallejob/steiner-parker-filter) (AGPL-3.0, Institute of Electronic Music and Acoustics, KUG Graz; [write-up](https://sofiavallejob.github.io/sofiavallejo/blog/steiner-parker-filter/)) models the Vult Eurorack build (L. Laguna Ruiz, 2017) of the Yusynth "improved" Steiner-Parker VCF, after Nyle Steiner's Synthacon. It comes as a Python reference, a C++ model (`plugin/Source/SPModel.h`, 319 lines) inside a JUCE plugin, and a Reaper JSFX:
 
@@ -84,7 +84,7 @@ Stereo, 48 kHz, a 55 Hz saw, default settings, the compute call alone timed, bes
 
 **JUCE.** `make juce` runs faust2juce with `-presets juce/presets.json` (the 8 factory presets as host programs, after the "Default" entry of the architecture) and builds the generated CMake project with `-DFAUST_CUSTOM_EDITOR=juce/SteinerParkerEditor.h`: the faceplate of the original plugin, its look and feel, knobs, scales, colours and layout taken from `PluginEditor.{h,cpp}` and bound to the host parameters of the Faust processor. Quality is fixed when a Faust program is compiled, so the plugin shows the factor it was built with (`make juce QUALITY=4` builds the 4x one) and the Quality selector does not turn; Save/Load of preset files is left out. CMake downloads JUCE 8.0.10 the first time (the editor needs JUCE 8).
 
-**Web.** `make web` compiles `dsp/steinerparker_rs{,_1x,_4x}.dsp` to wasm (double precision) by faust-rs, and [web/](web/) plays them in an AudioWorklet: the faceplate drawn in SVG with the original's geometry and colours (drag, wheel, arrow keys, double click to reset, clickable selector labels), the preset bar, and a test bench (a saw at 1.0 = 5 V, noise, an audio file or the microphone, the slow cutoff sweep of the write-up's listening examples, a CPU meter). Quality switches between the three programs and restarts the state at the DC point, as the plugin does. `make web-serve`, then <http://localhost:8765/web/>.
+**Web.** `make web` compiles `dsp/steinerparker_rs{,_1x,_4x}.dsp` to wasm (double precision) by faust-rs, and [web/](web/) plays them in an AudioWorklet: the faceplate drawn in SVG with the original's geometry and colours (drag, wheel, arrow keys, double click to reset, clickable selector labels), the preset bar, and a test bench (a saw at 1.0 = 5 V, noise, an audio file or the microphone, the slow cutoff sweep of the write-up's listening examples, a CPU meter). Quality switches between the three programs and restarts the state at the DC point, as the plugin does. `make web-serve`, then <http://localhost:8765/web/>. The published version is at https://sletz.github.io/faust-steiner-parker/: `web/` as it is on `main`, the wasm modules of `web/dsp` included, deployed by `.github/workflows/pages.yml` (nothing is compiled there; run `make -B web` and commit after a faust-rs change).
 
 ## 6. Running it
 
