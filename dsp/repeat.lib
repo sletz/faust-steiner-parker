@@ -1,0 +1,139 @@
+declare name "Repeat Loop Library";
+declare version "0.2.0";
+declare author "faust-diff";
+declare license "MIT";
+
+//################################## repeat.lib ##########################################
+// Repeat loop library. Its official prefix is `rp`.
+//
+// A library simulation of the `repeat` primitive of faust-rs
+// (`docs/repeat-note-en.md`): a bounded loop whose exit is decided inside.
+//
+// ```
+// repeat(C) : n + 1 -> m      for C : n -> m + 1
+// ```
+//
+// The first input is the clock `H`, the bound: the body runs at most
+// `int(H)` times per outer sample, and again after an iteration only while
+// the last output of `C`, the continue flag, was non-zero. The first
+// iteration is unconditional when `H > 0`; `H = 0` holds the outputs. Local
+// time inside `C` counts executed iterations; the inputs are snapshotted at
+// the sample.
+//
+// Built on the two clock-domain primitives that exist: an outer integer
+// `ondemand` runs `H` times per sample; inside it, a boolean `ondemand` runs
+// the body on the first iteration of the sample (the sample index passed
+// in changes) and then while the flag held from the previous iteration is
+// non-zero. This is the form of section 1.5 of the faust-rs plan
+// `porting/repeat-counted-loop-with-exit-analysis-and-plan-2026-09-18-en.md`,
+// measured there against the semantics; the primitive, when it lands,
+// replaces it without changing a sample.
+//
+// The library uses `basics.lib` and `signals.lib` through `stdfaust.lib`,
+// so the directory of the Faust standard libraries must be on the import
+// path. It is a `faust-rs` library: `ondemand` is not known to the C++
+// Faust compiler. Names are in snake_case.
+//
+// The Repeat library is organized into 1 section:
+//
+// * [Bounded Loop](#bounded-loop)
+//
+// It should be used using the `rp` environment:
+//
+// ```
+// rp = library("repeat.lib");
+// process = (H, inputs) : rp.repeat(body);
+// ```
+//
+// #### References
+//
+// * <https://github.com/grame-cncm/faust-rs/blob/main/docs/repeat-note-en.md>
+// * <https://github.com/sletz/faust-diff-ts808> (README §2: the simulation
+//   and its cost)
+//########################################################################################
+
+import("stdfaust.lib");
+
+//==================================== Bounded Loop ======================================
+// The one function of the library: a body run a bounded number of times per
+// sample, with an exit the body decides.
+//========================================================================================
+
+//-----------------------------------`(rp.)repeat`----------------------------------------
+// Run the body `C` at most `int(H)` times per sample, stopping after an
+// iteration whose continue flag, the last output of `C`, is zero. The
+// first iteration of a sample is unconditional when `H > 0`; `H = 0` holds
+// the outputs of the previous sample. Inside `C`, time counts executed
+// iterations across samples, and the inputs are those of the sample; a
+// body that must restart at every sample reads the sample index as an
+// input (`ba.time + 1` passed in the bus) and resets its state when it
+// changes, as in the example. The outputs are the first `m` outputs of the
+// last executed iteration, held until the next.
+//
+// #### Usage
+//
+// ```
+// (H, si.bus(n)) : repeat(C) : si.bus(m)
+// ```
+//
+// Where:
+//
+// * `C`: the body, `n` inputs and `m + 1` outputs, the last one the
+//   continue flag (non-zero to run again)
+// * `H`: the bound, the largest number of iterations of a sample (a signal;
+//   `0` skips the sample)
+//
+// #### Example
+//
+// The square root of the input by Newton's method, at most 8 steps per
+// sample, stopping when a step is under 1e-9: the sample index tells the
+// first iteration, where the estimate is reset to the input.
+//
+// ```
+// rp = library("repeat.lib");
+// import("stdfaust.lib");
+// newton(t, a) = iter ~ _
+// with {
+//     first = t != t';
+//     iter(y) = yn, (abs(yn - y0) > 1e-9)
+//     with {
+//         y0 = select2(first, y, a);
+//         yn = 0.5 * (y0 + a / y0);
+//     };
+// };
+// process(a) = (8, ba.time + 1, a) : rp.repeat(newton);
+// ```
+//
+// #### Test
+// ```
+// rp = library("repeat.lib");
+// ba = library("basics.lib");
+// repeat_test = (8, ba.time + 1, 2.0) : rp.repeat(newton)
+// with {
+//     newton(t, a) = iter ~ _
+//     with {
+//         first = t != t';
+//         iter(y) = yn, (abs(yn - y0) > 1e-9)
+//         with {
+//             y0 = select2(first, y, a);
+//             yn = 0.5 * (y0 + a / y0);
+//         };
+//     };
+// };
+// ```
+//
+// #### References
+//
+// * <https://github.com/grame-cncm/faust-rs/blob/main/docs/repeat-note-en.md>
+//----------------------------------------------------------------------------------------
+declare repeat license "MIT";
+repeat(C) = (_, (ba.time + 1, si.bus(n))) : ondemand(shell)
+with {
+    n = inputs(C);
+    m = outputs(C) - 1;
+    shell = (first, si.bus(n)) : (gate ~ (si.block(m), _)) : (si.bus(m), !)
+    with {
+        first = _ <: (_ != _');
+        gate = ((_, _) : |), si.bus(n) : ondemand(C);
+    };
+};

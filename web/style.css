@@ -1,0 +1,109 @@
+/* The faceplate colours of the original editor (plugin/Source/PluginEditor.h). */
+:root {
+  --panel: #1e3a4c;
+  --panel-hi: #26475c;
+  --silk: #f2ead3;
+  --strip: #13171b;
+  --strip-hi: #22282e;
+  --core: #e0533d;
+  --mod: #f2b134;
+  --signal: #4fb3a9;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: #0b0d10;
+  color: var(--silk);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.rack {
+  width: min(460px, calc(100vw - 32px));
+  margin: 24px auto 40px;
+}
+
+.strip {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--strip);
+  padding: 10px 14px;
+  height: 48px;
+}
+
+.strip button, .bench button {
+  background: var(--strip-hi);
+  color: var(--silk);
+  border: 0;
+  border-radius: 3px;
+  height: 28px;
+  min-width: 28px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.strip button:hover, .bench button:hover { background: var(--core); color: var(--strip); }
+
+.strip select {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  background: var(--strip-hi);
+  color: var(--silk);
+  border: 0;
+  border-radius: 3px;
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+.face svg { display: block; width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+
+.knob { cursor: ns-resize; outline: none; }
+.knob:focus-visible .skirt { stroke: var(--mod); stroke-width: 2; }
+.knob.fixed { cursor: default; }
+.choice { cursor: pointer; }
+
+.bubble rect { fill: rgba(19, 23, 27, 0.95); }
+.bubble text { fill: var(--silk); font-size: 13px; }
+
+.bench {
+  background: var(--strip);
+  padding: 12px 14px 4px;
+  font-size: 13px;
+}
+
+.bench .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.bench select {
+  background: var(--strip-hi);
+  color: var(--silk);
+  border: 0;
+  border-radius: 3px;
+  height: 26px;
+  margin-left: 4px;
+}
+
+.bench input[type="range"] { width: 110px; vertical-align: middle; accent-color: var(--signal); }
+.bench input[type="checkbox"] { accent-color: var(--core); }
+.bench output { display: inline-block; min-width: 4.5em; color: rgba(242, 234, 211, 0.8); }
+.bench .power { padding: 0 12px; }
+.bench .power.on { background: var(--signal); color: var(--strip); }
+.meter { margin-left: auto; color: rgba(242, 234, 211, 0.8); font-variant-numeric: tabular-nums; }
+
+.note {
+  color: rgba(242, 234, 211, 0.6);
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 4px 0 10px;
+}
+
+.note a { color: var(--mod); }
+.note code { font-size: 11px; }

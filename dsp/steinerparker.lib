@@ -1,0 +1,558 @@
+declare name "Steiner-Parker Library";
+declare version "0.1.0";
+declare author "faust-steiner-parker";
+declare license "AGPL-3.0";
+
+//############################## steinerparker.lib ######################################
+// The nonlinear wave digital model of the Yusynth Steiner-Parker VCF by Sofia
+// Vallejo (IEM, KUG Graz), github.com/sofiavallejob/steiner-parker-filter,
+// written in Faust. Its official prefix is `sp`.
+//
+// Circuit: the Vult Eurorack build of the Yusynth design (L. Laguna Ruiz,
+// 2017). The model is the one of `plugin/Source/SPModel.h`:
+//
+// * the six capacitors are wave digital leaves, Rc = T/2C, b[n] = a[n-1];
+// * the rest of the circuit, 11 nodes, is one nonlinear root reduced to 5
+//   ports, the 4 merged diode groups of the ladder and the resonance
+//   feedback current, solved by Newton at every sample with SPICE junction
+//   limiting (pnjlim) on the diode ports;
+// * the linear maps of the root (K, Au, Ac, Wc) come from the inverse of the
+//   11 x 11 nodal matrix with the capacitor conductances stamped in. Here they
+//   are computed by the program itself, by Gauss-Jordan written on buses
+//   (`inverse`), for the three input jacks, at the internal sample rate: they
+//   depend on `ma.SR` only, so the compiler computes them once at
+//   initialisation;
+// * the state starts from the DC operating point (capacitors open, Newton
+//   from u = (0.5, 0.5, 0.5, 0.5, 0)), as `Circuit::setup` does, and is reset
+//   to it when the input jack changes or the state stops being finite.
+//
+// The Newton loop comes in two forms, which compute the same samples:
+//
+// * `repeated(H)`, the loop of the C++: at most H iterations, stopping after
+//   the first one whose step is under 1e-9 V, so that a sample costs the
+//   iterations it needs (2 on most samples). It is built on `repeat.lib`, the
+//   simulation of the `repeat` primitive by the `ondemand` clock domains of
+//   faust-rs, and needs faust-rs;
+// * `unrolled(N)`, for any Faust compiler (faust2juce...): N iterations at
+//   every sample, frozen once converged. N = 12 reproduces the C++ at every
+//   setting measured; it costs the 12 iterations on every sample.
+//
+// Other differences with the C++, all deliberate:
+//
+// * the 5 x 5 Newton system is solved by Gauss-Jordan without pivoting (the
+//   JSFX version solves it without pivoting too; partial pivoting never swaps
+//   rows in the C++ at any setting measured), the nodal matrix inverted
+//   without pivoting (it is symmetric and diagonally dominant);
+// * the order of floating-point operations is the compiler's.
+//
+// Needs `-double`: the DC system has conductances from 1e-12 (GMIN) to
+// 1e-3 S and the Newton tolerance is 1e-9 V.
+//
+// The library uses `maths.lib`, `basics.lib` and `signals.lib`, and
+// `repeat.lib` of this project for `repeated`.
+//
+// The library is organized into 5 sections:
+//
+// * [Bus helpers](#bus-helpers)
+// * [Netlist](#netlist)
+// * [Root](#root)
+// * [Controls](#controls)
+// * [Plugin](#plugin)
+//
+// It should be used using the `sp` environment:
+//
+// ```
+// sp = library("steinerparker.lib");
+// process = sp.plugin(2, 12, 40);                    // any Faust compiler
+// process = sp.plugin_with(2, sp.repeated(50), 40);   // faust-rs
+// ```
+//########################################################################################
+
+ma = library("maths.lib");
+ba = library("basics.lib");
+si = library("signals.lib");
+rp = library("repeat.lib");
+
+//===================================== Bus helpers ======================================
+// Matrices are buses, row-major. Every rearrangement is a `route`, so the
+// size of the program grows with the matrices, not with their uses.
+//========================================================================================
+
+//------------------------------------------`(sp.)sel`------------------------------------
+// A route whose output `m` (from 0) reads input `f(m)` (from 1).
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : sel(N, M, f) : si.bus(M)
+// ```
+//----------------------------------------------------------------------------------------
+sel(N, M, f) = route(N, M, par(m, M, (f(m), m + 1)));
+
+// Append to a bus of N signals the outputs of f, which reads the whole bus.
+ext(N, f) = si.bus(N) <: si.bus(N), f;
+
+//---------------------------------------`(sp.)gj_step`-----------------------------------
+// Step `k` of Gauss-Jordan elimination on an `n` x `w` matrix: row `k` is
+// divided by its pivot, then subtracted from every other row, as in
+// `Circuit::invert`: a_ij - a_ik * (a_kj / a_kk). No pivoting.
+//----------------------------------------------------------------------------------------
+gj_step(n, w, k) = sel(n * w, 4 * n * w, f) : par(e, n * w, op(int(e / w)))
+with {
+    f(m) = (q == 0) * (i * w + j + 1) + (q == 1) * (i * w + k + 1)
+         + (q == 2) * (k * w + j + 1) + (q == 3) * (k * w + k + 1)
+    with {
+        e = int(m / 4);
+        q = m % 4;
+        i = int(e / w);
+        j = e % w;
+    };
+    op(i, a, b, c, d) = (i == k) * (c / d) + (i != k) * (a - b * (c / d));
+};
+
+//---------------------------------------`(sp.)inverse`-----------------------------------
+// The inverse of an `n` x `n` matrix, by Gauss-Jordan on [A | I].
+//
+// #### Usage
+//
+// ```
+// si.bus(n * n) : inverse(n) : si.bus(n * n)
+// ```
+//----------------------------------------------------------------------------------------
+inverse(n) = (si.bus(n * n), 0, 1) : sel(n * n + 2, 2 * n * n, aug)
+           : seq(k, n, gj_step(n, 2 * n, k))
+           : sel(2 * n * n, n * n, right)
+with {
+    aug(m) = (j < n) * (i * n + j + 1) + (j >= n) * ((j - n == i) * (n * n + 2) + (j - n != i) * (n * n + 1))
+    with { i = int(m / (2 * n)); j = m % (2 * n); };
+    right(m) = int(m / n) * 2 * n + n + m % n + 1;
+};
+
+//----------------------------------------`(sp.)solve`------------------------------------
+// The solution x of A x = b, by Gauss-Jordan on [A | b].
+//
+// #### Usage
+//
+// ```
+// (si.bus(n * n), si.bus(n)) : solve(n) : si.bus(n)
+// ```
+//----------------------------------------------------------------------------------------
+solve(n) = sel(n * n + n, n * (n + 1), aug)
+         : seq(k, n, gj_step(n, n + 1, k))
+         : sel(n * (n + 1), n, \(m).(m * (n + 1) + n + 1))
+with {
+    aug(m) = (j < n) * (i * n + j + 1) + (j == n) * (n * n + i + 1)
+    with { i = int(m / (n + 1)); j = m % (n + 1); };
+};
+
+//------------------------------------------`(sp.)matvec`---------------------------------
+// y = A x for an `r` x `c` matrix A.
+//
+// #### Usage
+//
+// ```
+// (si.bus(r * c), si.bus(c)) : matvec(r, c) : si.bus(r)
+// ```
+//----------------------------------------------------------------------------------------
+matvec(r, c) = sel(r * c + c, 2 * r * c, f) : par(e, r * c, *) : par(i, r, si.bus(c) :> _)
+with {
+    f(m) = (m % 2 == 0) * (int(m / 2) + 1) + (m % 2 == 1) * (r * c + int(m / 2) % c + 1);
+};
+
+//========================================= Netlist ======================================
+// The schematic values of `SPModel.h` (`Circuit::build`), reference
+// designators kept. Node -1 is ground.
+//========================================================================================
+
+NN = 11;   // nodes of the root
+NP = 5;    // nonlinear ports
+NC = 6;    // capacitors
+NZ = 10;   // z = [1, vs, i1, i2, b0..b5]
+NCOEF = NP * NP + NP * NZ + NC * NZ + NC * NP;   // K, Au, Ac, Wc: 165
+
+nL = 0; nR = 1; nA = 2; nM = 3; nB = 4; nW = 5; nNB = 6; nNC = 7; nCT = 8; nP = 9; nS = 10;
+
+VT = 0.02585; IS_D = 2.52e-9; N_D = 1.752;
+VCC = 12.0; VEE = -12.0; VSAT = 10.5; VBE = 0.65; GMIN = 1e-12;
+R15 = 1000.0; GAIN1 = 1.0 + 47000.0 / 22000.0; GOUT = 220000.0 / 10000.0;
+
+// the node an input jack injects into, through R6 (47k)
+srcNode(dest) = (dest < 2) * nS + (dest == 2) * nNC;
+
+// conductances (a, b, g): R10 (also the VCC source), R11, R9 + half of T2,
+// R13 + half of T2, R12, R15, R14, R6 (source), R7 / R8 / S load
+NR = 9;
+resA(dest, e) = ba.take(e + 1, (nCT, nCT, nW, nW, nNC, nNB, nP, srcNode(dest), nS));
+resB(dest, e) = ba.take(e + 1, (-1, nW, nL, nR, -1, -1, -1, -1, -1));
+resG(dest, e) = ba.take(e + 1, (1.0 / 390.0, 1.0 / 1000.0, 1.0 / 2300.0, 1.0 / 2300.0, 1.0 / 1000.0,
+                                1.0 / R15, 1.0 / 2.2e6, 1.0 / 47000.0,
+                                (dest < 2) * (1.0 / 180000.0) + (dest == 2) * (1.0 / 1e6)));
+
+// capacitors (p, q, C): C7, C9, C11, C10, C12, then C5 (A: S-W), C6 (B: S-NB)
+// or the dummy of jack C (S unused)
+capP(dest, c) = ba.take(c + 1, (nCT, nA, nB, nM, nM, nS));
+capQ(dest, c) = ba.take(c + 1, (-1, nNB, nNB, nNC, nP, (dest == 0) * nW + (dest == 1) * nNB + (dest == 2) * (-1)));
+capC(dest, c) = ba.take(c + 1, (47e-6, 1.5e-9, 1.5e-9, 1.5e-9, 680e-9, (dest < 2) * 2.2e-6 + (dest == 2) * 1e-9));
+
+// the merged diode groups (anode, cathode, number of diodes)
+dA(k) = ba.take(k + 1, (nR, nB, nM, nA));
+dK(k) = ba.take(k + 1, (nB, nM, nA, nL));
+dMult(k) = ba.take(k + 1, (3, 2, 2, 3));
+
+// stamp of a conductance between a and b at (i, j)
+stamp(a, b, i, j) = (i == a) * (j == a) + (i == b) * (j == b) - (i == a) * (j == b) - (i == b) * (j == a);
+
+//---------------------------------------`(sp.)nodal`-------------------------------------
+// The nodal matrix of jack `dest` with the capacitor conductances 2 fs C
+// stamped in; fs = 0 leaves the capacitors open (the DC matrix).
+//----------------------------------------------------------------------------------------
+nodal(dest, fs) = par(i, NN, par(j, NN, g(i, j)))
+with {
+    g(i, j) = GMIN * (i == j)
+            + sum(e, NR, resG(dest, e) * stamp(resA(dest, e), resB(dest, e), i, j))
+            + sum(c, NC, 2.0 * fs * capC(dest, c) * stamp(capP(dest, c), capQ(dest, c), i, j));
+};
+
+//---------------------------------------`(sp.)coefs`-------------------------------------
+// The 165 coefficients of the root for jack `dest` at the rate fs, as
+// `Circuit::reduce` and `Circuit::precompute` compute them:
+//
+// * K  (5 x 5):  measured port voltages per injected port current;
+// * Au (5 x 10): port voltages per entry of z = [1, vs, i1, i2, b0..b5];
+// * Ac (6 x 10): capacitor voltages per entry of z;
+// * Wc (6 x 5):  capacitor voltages per injected port current.
+//
+// Each one is s * (e_a - e_b)' Gi (e_c - e_d), with Gi the inverse of the
+// nodal matrix. fs = 0 gives the DC coefficients.
+//----------------------------------------------------------------------------------------
+coefs(dest, fs) = nodal(dest, fs) : inverse(NN)
+               <: par(j, NP, par(k, NP, form(measA(j), measB(j), injA(k), injB(k), 1.0))),
+                  par(j, NP, par(k, NZ, form(measA(j), measB(j), zA(dest, k), zB(dest, k), zS(dest, fs, k)))),
+                  par(i, NC, par(k, NZ, form(capP(dest, i), capQ(dest, i), zA(dest, k), zB(dest, k), zS(dest, fs, k)))),
+                  par(i, NC, par(k, NP, form(capP(dest, i), capQ(dest, i), injA(k), injB(k), 1.0)));
+
+// measured and injected ports, entries of z: (node a, node b, scale)
+measA(j) = (j < 4) * dA(min(j, 3)) + (j == 4) * nP;
+measB(j) = (j < 4) * dK(min(j, 3)) + (j == 4) * (-1);
+injA(k) = (k < 4) * dA(min(k, 3)) + (k == 4) * nNB;
+injB(k) = (k < 4) * dK(min(k, 3)) + (k == 4) * (-1);
+zA(dest, k) = ba.take(k + 1, (nCT, srcNode(dest), nL, nR, par(i, NC, capP(dest, i))));
+zB(dest, k) = ba.take(k + 1, (-1, -1, -1, -1, par(i, NC, capQ(dest, i))));
+zS(dest, fs, k) = ba.take(k + 1, (VCC / 390.0, 1.0 / 47000.0, -1.0, -1.0, par(i, NC, 2.0 * fs * capC(dest, i))));
+
+// s * (Gi[a][c] - Gi[a][d] - Gi[b][c] + Gi[b][d]), node -1 reading a zero
+form(a, b, c, d, s) = (si.bus(NN * NN), 0) : sel(NN * NN + 1, 4, f) : \(w, x, y, z).(s * (w - x - y + z))
+with {
+    f(m) = ix(ba.take(m + 1, (a, a, b, b)), ba.take(m + 1, (c, d, c, d)));
+    ix(r, q) = ((r < 0) | (q < 0)) * (NN * NN + 1) + ((r >= 0) & (q >= 0)) * (r * NN + q + 1);
+};
+
+//========================================== Root ========================================
+// The nonlinear root: port currents, Newton, one sample.
+//========================================================================================
+
+// the rail knee of the TL074 stages, and its derivative
+railclip(x) = x * k with { u = abs(x) / VSAT; u2 = u * u; u4 = u2 * u2; u8 = u4 * u4; k = pow(1.0 + u8, -0.125); };
+railclip_d(x) = k / (1.0 + u8) with { u = abs(x) / VSAT; u2 = u * u; u4 = u2 * u2; u8 = u4 * u4; k = pow(1.0 + u8, -0.125); };
+
+nvt(k) = dMult(k) * N_D * VT;
+vcrit(k) = nvt(k) * log(nvt(k) / (1.41421356 * IS_D));
+
+// current and conductance of the merged diode group k, linearised above x = 40
+diode(k, u) = cur, der
+with {
+    x = u / nvt(k);
+    big = x > 40.0;
+    e = exp(min(x, 40.0));
+    cur = select2(big, IS_D * (e - 1.0), IS_D * (e * (1.0 + x - 40.0) - 1.0));
+    der = IS_D * e / nvt(k);
+};
+
+// the resonance feedback current into Nb, and its derivative in vP
+feedback(kfb, u4) = -kfb * railclip(g) / R15, -kfb * GAIN1 * railclip_d(g) / R15 with { g = GAIN1 * u4; };
+
+// (kfb, u0..u4) -> (cur0..cur4, der0..der4)
+currents = \(kfb, u0, u1, u2, u3, u4).(diode(0, u0), diode(1, u1), diode(2, u2), diode(3, u3), feedback(kfb, u4))
+         : sel(10, 10, \(m).((m < 5) * (2 * m + 1) + (m >= 5) * (2 * (m - 5) + 2)));
+
+// SPICE junction limiting on the diode group k (`Circuit::pnjlim`), one log
+pnjlim(k, vnew, vold) = select2(limit, vnew, select2(vold > 0, nvt(k) * l, select2(arg > 0, vcrit(k), vold + nvt(k) * l)))
+with {
+    limit = (vnew > vcrit(k)) & (abs(vnew - vold) > 2.0 * nvt(k));
+    arg = 1.0 + (vnew - vold) / nvt(k);
+    l = log(max(select2(vold > 0, vnew / nvt(k), arg), 1e-300));
+};
+
+TOL = 1e-9;
+
+//-------------------------------------`(sp.)newton_step`---------------------------------
+// One Newton iteration on the 5 ports, F(u) = u - u0 + K i(u), with
+// limiting on the diode ports; frozen once a step was under TOL.
+//
+// #### Usage
+//
+// ```
+// (K(25), kfb, u0(5), u(5), done) : newton_step : (K(25), kfb, u0(5), u(5), done)
+// ```
+//----------------------------------------------------------------------------------------
+// bus: K 0..24, kfb 25, u0 26..30, u 31..35, done 36
+newton_step = ext(37, sel(37, 6, \(m).((m == 0) * 26 + (m > 0) * (31 + m))) : currents)  // cur 37..41, der 42..46
+            : ext(47, sel(47, 40, fF) : (matvec(NP, NP), si.bus(10)) : sel(15, 15, il3) : par(i, NP, \(kc, u, u0).(u - u0 + kc)))  // F 47..51
+            : ext(52, sel(52, 50, fJ) : par(e, NP * NP, * : +(e % 6 == 0)))  // J 52..76
+            : ext(77, sel(77, 30, \(m).((m < 25) * (53 + m) + (m >= 25) * (23 + m))) : solve(NP))  // X 77..81
+            <: (sel(82, 31, \(m).(m + 1)), (sel(82, 11, fU) : update))
+with {
+    fF(m) = (m < 25) * (m + 1) + ((m >= 25) & (m < 30)) * (m + 13) + ((m >= 30) & (m < 35)) * (m + 2) + (m >= 35) * (m - 8);
+    il3(m) = (m % 3) * 5 + int(m / 3) + 1;
+    fJ(m) = (m % 2 == 0) * (int(m / 2) + 1) + (m % 2 == 1) * (43 + int(m / 2) % 5);
+    fU(m) = (m < 5) * (32 + m) + ((m >= 5) & (m < 10)) * (73 + m) + (m == 10) * 37;
+    update(u0, u1, u2, u3, u4, x0, x1, x2, x3, x4, done) =
+        par(i, NP, select2(done, nu(i), ba.take(i + 1, (u0, u1, u2, u3, u4)))), done | (mx < TOL)
+    with {
+        u(i) = ba.take(i + 1, (u0, u1, u2, u3, u4));
+        x(i) = ba.take(i + 1, (x0, x1, x2, x3, x4));
+        nu(i) = select2(i < 4, u(i) - x(i), pnjlim(min(i, 3), u(i) - x(i), u(i)));
+        mx = max(max(max(abs(nu(0) - u0), abs(nu(1) - u1)), max(abs(nu(2) - u2), abs(nu(3) - u3))), abs(x4));
+    };
+};
+
+//------------------------------------------`(sp.)tick`-----------------------------------
+// One sample of the circuit at the internal rate (`Circuit::tick`): the
+// coefficients, the controls (i1, i2, kfb), the source voltage after IC1A,
+// and the state (u, b) in; the new state and Vo1, the IC1C output, out.
+// `tick(N)` runs N Newton iterations at most, unrolled (any Faust compiler);
+// `tick_with(solver)` takes the Newton loop as an argument, `unrolled(N)` or
+// `repeated(H)`.
+//
+// #### Usage
+//
+// ```
+// (coefs(165), i1, i2, kfb, vs, u(5), b(6)) : tick(N) : (u(5), b(6), vo1)
+// ```
+//----------------------------------------------------------------------------------------
+tick(N) = tick_with(unrolled(N));
+
+//---------------------------------------`(sp.)unrolled`----------------------------------
+// The Newton loop unrolled to N iterations, frozen once a step was under
+// TOL: every iteration is computed at every sample. Any Faust compiler.
+//
+// #### Usage
+//
+// ```
+// (K(25), kfb, u0(5), u(5)) : unrolled(N) : u(5)
+// ```
+//----------------------------------------------------------------------------------------
+unrolled(N) = (si.bus(36), 0) : seq(it, N, newton_step) : sel(37, 5, \(m).(32 + m));
+
+//---------------------------------------`(sp.)repeated`----------------------------------
+// The Newton loop of the C++: at most H iterations, stopping after the
+// first one whose step is under TOL, so that a sample costs the iterations
+// it needs (2 on most samples). Built on `repeat.lib`, the simulation of the
+// `repeat` primitive by the `ondemand` clock domains of faust-rs: not known
+// to the C++ Faust compiler.
+//
+// #### Usage
+//
+// ```
+// (K(25), kfb, u0(5), u(5)) : repeated(H) : u(5)
+// ```
+//----------------------------------------------------------------------------------------
+repeated(H) = (H, ba.time + 1, si.bus(36)) : rp.repeat(body)
+with {
+    // inputs: the sample index, K, kfb, u0, and the warm start (the previous
+    // sample's solution); the iterate is the recursion, reset to the warm
+    // start on the first iteration of a sample
+    body(t) = iter ~ si.bus(NP)
+    with {
+        first = t != t';
+        iter = si.bus(NP + 36) <: (sel(NP + 36, 31, \(m).(NP + 1 + m)),
+                                   (sel(NP + 36, 2 * NP, \(m).((m < NP) * (m + 1) + (m >= NP) * (NP + 32 + m - NP)))
+                                    : sel(2 * NP, 2 * NP, \(m).((m % 2 == 0) * (int(m / 2) + 1) + (m % 2 == 1) * (int(m / 2) + NP + 1)))
+                                    : par(i, NP, \(fb, w).(select2(first, fb, w)))),
+                                   0)
+             : newton_step : (si.block(31), si.bus(NP), (_ == 0));
+    };
+};
+
+tick_with(solver) = ext(180, (sel(180, 50, \(m).(26 + m)), z(180)) : matvec(NP, NZ))  // u0 180..184
+        : ext(185, sel(185, 36, fN) : solver)  // u 185..189
+        : ext(190, sel(190, 6, \(m).((m == 0) * 168 + (m > 0) * (185 + m))) : currents : (si.bus(5), si.block(5)))  // cur 190..194
+        <: (sel(195, 5, \(m).(186 + m)), bnew, (sel(195, 1, \(m).(190)) : *(GAIN1) : railclip))
+with {
+    // z = [1, vs, i1, i2, b0..b5] from a bus of n signals laid out as above
+    z(n) = (si.bus(n), 1) : sel(n + 1, NZ, \(m).((m == 0) * (n + 1) + (m == 1) * 169 + (m == 2) * 166 + (m == 3) * 167 + (m >= 4) * (171 + m)));
+    fN(m) = (m < 25) * (m + 1) + (m == 25) * 168 + ((m >= 26) & (m < 31)) * (m + 155) + (m >= 31) * (m + 139);
+    bnew = si.bus(195) <: ((sel(195, 60, \(m).(76 + m)), z(195)) : matvec(NC, NZ)),
+                          ((sel(195, 30, \(m).(136 + m)), sel(195, 5, \(m).(191 + m))) : matvec(NC, NP)),
+                          sel(195, NC, \(m).(175 + m))
+         : sel(18, 18, \(m).((m % 3) * 6 + int(m / 3) + 1))
+         : par(c, NC, \(ac, wc, b).(2.0 * (ac - wc) - b));
+};
+
+//---------------------------------------`(sp.)dc_state`----------------------------------
+// The DC operating point (`Circuit::setup`): the DC coefficients, Newton
+// from u = (0.5, 0.5, 0.5, 0.5, 0) with NDC iterations at most, and the
+// capacitor voltages, which are the initial waves (i = 0, so a = b = v).
+//
+// #### Usage
+//
+// ```
+// (dccoefs(165), i1, i2, kfb) : dc_state(NDC) : (u(5), b(6))
+// ```
+//----------------------------------------------------------------------------------------
+dc_state(NDC) = (si.bus(NCOEF + 3), 0, 0.5, 0.5, 0.5, 0.5, 0, par(c, NC, 0)) : tick(NDC)
+              : (si.bus(NP), par(c, NC, *(0.5)), !);
+
+// the coefficients of the three jacks at the rate fs, selected by jack (a signal)
+coefs3(fs, jack) = (coefs(0, fs), coefs(1, fs), coefs(2, fs))
+                 : sel(3 * NCOEF, 3 * NCOEF, \(m).((m % 3) * NCOEF + int(m / 3) + 1))
+                 : par(i, NCOEF, \(a, b, c).(select3(jack, a, b, c)));
+
+//======================================== Controls ======================================
+// The control law (`Controls::update`).
+//========================================================================================
+
+//---------------------------------------`(sp.)controls`----------------------------------
+// From the CUT knob (0..1), the CV (volts), the RES pot (0..1) and the V/oct
+// trim T1 (0..1) to the expo-pair collector currents and the resonance gain.
+//
+// #### Usage
+//
+// ```
+// controls(cut, cv, res, t1) : (i1, i2, kfb)
+// ```
+//----------------------------------------------------------------------------------------
+controls(cut, cv, res, t1) = i1, it - i1, kfb
+with {
+    vcut = VCC * 50000.0 / (47000.0 + 50000.0) * cut;
+    rb = 220.0 + t1 * 2000.0;
+    g = 1.0 / 150000.0 + 3.0 / 220000.0 + 1.0 / rb;
+    vb = (vcut / 150000.0 + cv / 220000.0) / g;
+    it = (0.0 - VBE - VEE) / (3900.0 + 82.0);
+    x = max(-60.0, min(60.0, vb / VT));
+    i1 = it / (1.0 + exp(-x));
+    lo = max(res, 1e-6) * 100000.0;
+    up = (1.0 - res) * 100000.0;
+    upe = select2(up > 0, 0.0, up * 100000.0 / (up + 100000.0));
+    zr = upe + lo;
+    vtop = zr / (3900.0 + zr);
+    kfb = vtop * lo / zr * 1e6 / (220000.0 + 1e6);
+};
+
+//========================================= Plugin =======================================
+// The plugin chain of the original (PluginProcessor.cpp, and the JSFX for
+// the oversampling filters).
+//========================================================================================
+
+RESMAX = 0.78;   // the Resonance knob covers 0..0.78 of the RES pot
+
+// the output stage IC2 (x22, inverting) with its rail knee
+output_stage(vo1) = railclip(-GOUT * vo1);
+
+// RBJ low-pass biquad coefficient i of (b0, b1, b2, a1, a2)
+lpc(i, fc, fsr, q) = ba.take(i + 1, ((1.0 - cw) / 2.0 / a0, (1.0 - cw) / a0, (1.0 - cw) / 2.0 / a0, -2.0 * cw / a0, (1.0 - al) / a0))
+with { w0 = 2.0 * ma.PI * fc / fsr; al = sin(w0) / (2.0 * q); cw = cos(w0); a0 = 1.0 + al; };
+
+//-------------------------------------------`(sp.)aa`------------------------------------
+// The JSFX's anti-aliasing filter at the rate OS * SR: two RBJ low-pass
+// biquads (a 4th-order Butterworth) at 0.45 of the host rate, each in
+// transposed direct form II; OS = 1 has none.
+//
+// #### Usage
+//
+// ```
+// (x, s0, s1, s2, s3) : aa(OS) : (y, s0', s1', s2', s3')
+// ```
+//----------------------------------------------------------------------------------------
+aa(1) = si.bus(5);
+aa(OS) = aaf(OS);
+aaf(OS, x, s0, s1, s2, s3) = y2, c(1) * x - c(3) * y1 + s1, c(2) * x - c(4) * y1,
+                                 d(1) * y1 - d(3) * y2 + s3, d(2) * y1 - d(4) * y2
+with {
+    c(i) = lpc(i, 0.45 * ma.SR, OS * ma.SR, 0.5412);
+    d(i) = lpc(i, 0.45 * ma.SR, OS * ma.SR, 1.3066);
+    y1 = c(0) * x + s0;
+    y2 = d(0) * y1 + s2;
+};
+
+//------------------------------------------`(sp.)voice`----------------------------------
+// One channel at the host rate, the circuit run OS times per sample with N
+// Newton iterations at most, as `process_ch` of the JSFX: the first
+// sub-sample gets vs * OS, the others 0, through the anti-aliasing filter;
+// the outputs go through it again and the last one is kept. The state is
+// replaced by init on `reset`, and when it is not finite.
+//
+// #### Usage
+//
+// ```
+// (coefs(165), i1, i2, kfb, reset, init(11), vs) : voice(OS, N) : vo1
+// ```
+//----------------------------------------------------------------------------------------
+NS = 19;   // state: u 0..4, b 5..10, up filter 11..14, down filter 15..18
+NB = NCOEF + 4 + NS + 1;   // sub-step bus: coefs, i1, i2, kfb, vs, state, acc
+
+voice(OS, N) = voice_with(OS, unrolled(N));
+voice_with(OS, solver) = body ~ si.bus(NS) : (si.block(NS), _)
+with {
+    // body inputs (0-based): state 0..18, coefs 19..183, i1 184, i2 185,
+    // kfb 186, reset 187, init 188..198, vs 199
+    body = si.bus(200) <: (sel(200, NCOEF + 3, \(m).(20 + m)), sel(200, 1, \(m).(200)), state, 0)
+         : seq(k, OS, substep(k))
+         : sel(NB, NS + 1, \(m).(NCOEF + 5 + m));
+    state = si.bus(200) <: (r, sel(200, NS, \(m).(m + 1)), sel(200, 11, \(m).(189 + m)), par(i, NS - 11, 0))
+          : sel(1 + 2 * NS, 3 * NS, \(m).((m % 3 == 0) * 1 + (m % 3 == 1) * (int(m / 3) + 2) + (m % 3 == 2) * (int(m / 3) + NS + 2)))
+          : par(i, NS, select2);
+    r = si.bus(200) <: (sel(200, NS, \(m).(m + 1)) : bad), sel(200, 1, \(m).(188)) : |;
+    bad = par(i, NS, \(x).((x != x) | (abs(x) > 1e30))) :> >(0);
+    // sub-step bus (0-based): coefs 0..164, i1 165, i2 166, kfb 167, vs 168,
+    // u 169..173, b 174..179, su 180..183, sd 184..187, acc 188
+    substep(k) = ext(NB, sel(NB, 5, \(m).((m == 0) * 169 + (m > 0) * (180 + m))) : (*(OS * (k == 0)), si.bus(4)) : aa(OS))  // xf 189, su' 190..193
+               : ext(194, sel(194, 180, \(m).((m < 168) * (m + 1) + (m == 168) * 190 + (m > 168) * (m + 1))) : tick_with(solver))  // u' 194..198, b' 199..204, y 205
+               : ext(206, sel(206, 5, \(m).((m == 0) * 206 + (m > 0) * (184 + m))) : aa(OS))  // acc' 206, sd' 207..210
+               : sel(211, NB, \(m).((m < 169) * (m + 1) + ((m >= 169) & (m < 180)) * (m + 26)
+                                  + ((m >= 180) & (m < 184)) * (m + 11) + ((m >= 184) & (m < 188)) * (m + 24) + (m == 188) * 207));
+};
+
+//-----------------------------------------`(sp.)plugin`----------------------------------
+// The stereo plugin: the circuit oversampled OS times (1, 2 or 4) with N
+// Newton iterations at most per sub-sample (unrolled), and NDC for the DC
+// point; `plugin_with` takes the Newton loop as an argument
+// (`repeated(50)` with faust-rs). The
+// controls and their ranges are those of the plugin; Cutoff, CV and
+// Resonance are smoothed over 5 ms and the circuit's controls updated once
+// per host sample, as in PluginProcessor::processBlock. 1.0 is 5 V at the
+// jack. The panel follows the plugin's: Filter, Modulation, Signal, Settings.
+//
+// #### Usage
+//
+// ```
+// si.bus(2) : plugin(OS, N, NDC) : si.bus(2)
+// si.bus(2) : plugin_with(OS, solver, NDC) : si.bus(2)
+// ```
+//----------------------------------------------------------------------------------------
+plugin(OS, N, NDC) = plugin_with(OS, unrolled(N), NDC);
+plugin_with(OS, solver, NDC) = par(ch, 2, channel)
+with {
+    filt(x) = hgroup("[0]Filter", x);
+    modu(x) = hgroup("[1]Modulation", x);
+    sig(x) = hgroup("[2]Signal", x);
+    sets(x) = hgroup("[3]Settings", x);
+    cut = filt(vslider("[0]Frequency [style:knob] [scale:linear] [tooltip:CUT knob, about 5 Hz to 20 kHz at the default trim]", 0.51, 0, 1, 0.001));
+    res = filt(vslider("[1]Resonance [style:knob] [tooltip:0 to 0.78 of the RES pot; self-oscillation from about 0.9]", 0.4, 0, 1, 0.001));
+    cv = modu(vslider("[0]CV offset [unit:V] [style:knob] [tooltip:CV offset in volts]", 0, -3, 3, 0.01));
+    t1 = modu(vslider("[1]V-oct trim [style:knob] [tooltip:T1; 0.45 gives the full cutoff range at about 1.4 oct per V, 0.225 about 1 V per oct]", 0.45, 0, 1, 0.001));
+    drive = sig(vslider("[0]Input level [unit:dB] [style:knob] [tooltip:0 dB: digital 1.0 is 5 V at the jack]", 0, -24, 24, 0.1)) : ba.db2linear;
+    jack = sig(vslider("[1]Response [style:radio{'LP':0;'BP':1;'HP':2}] [tooltip:input jack A, B or C of the diode network]", 0, 0, 2, 1));
+    outg = sets(vslider("[0]Output [unit:dB] [style:knob]", -6, -36, 12, 0.1)) : ba.db2linear;
+
+    first = 1 - 1';
+    sm = 1.0 - exp(-1.0 / (0.005 * ma.SR));
+    smooth(x) = (\(y).(select2(first, y + sm * (x - y), x))) ~ _;
+    ctl = controls(smooth(cut), smooth(cv), smooth(res) * RESMAX, t1);
+    // the DC point is computed from the controls without smoothing: they
+    // agree at the first sample, where the C++ computes it too
+    init = (coefs3(0, jack), controls(cut, cv, res * RESMAX, t1)) : dc_state(NDC);
+    reset = first | (jack != jack');
+    channel(x) = (coefs3(OS * ma.SR, jack), ctl, reset, init, -5.0 * x * drive) : voice_with(OS, solver)
+               : output_stage : /(5.0) : *(outg);
+};

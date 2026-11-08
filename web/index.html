@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steiner-Parker Filter</title>
+<meta name="description" content="The nonlinear wave digital model of the Yusynth Steiner-Parker VCF by Sofia Vallejo, written in Faust and compiled to WebAssembly by faust-rs.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="rack">
+  <div class="strip" role="toolbar" aria-label="Presets">
+    <button id="prev" type="button" aria-label="Previous preset">&lt;</button>
+    <select id="preset" aria-label="Preset"></select>
+    <button id="next" type="button" aria-label="Next preset">&gt;</button>
+  </div>
+  <div id="face" class="face"></div>
+  <section class="bench" aria-label="Test bench">
+    <div class="row">
+      <button id="power" type="button" class="power">Start audio</button>
+      <label>Source
+        <select id="source">
+          <option value="saw">Saw</option>
+          <option value="noise">White noise</option>
+          <option value="file">Audio file…</option>
+          <option value="mic">Microphone</option>
+        </select>
+      </label>
+      <label id="pitchBox">Pitch <input id="pitch" type="range" min="27.5" max="440" step="0.5" value="55"><output id="pitchOut">55 Hz</output></label>
+      <input id="file" type="file" accept="audio/*" hidden>
+    </div>
+    <div class="row">
+      <label><input id="sweep" type="checkbox"> Sweep the cutoff (16 s up and down, as the article's examples)</label>
+      <span class="meter" title="Time spent computing the filter over the audio time, in the AudioWorklet">CPU <span id="load">–</span></span>
+    </div>
+    <p class="note">The <a href="https://github.com/sofiavallejob/steiner-parker-filter">Steiner-Parker filter</a> of Sofia Vallejo
+      (IEM, KUG Graz): a nonlinear wave digital model of the Yusynth VCF, Vult build. Here written in Faust
+      (<code>dsp/steinerparker.lib</code>), compiled to WebAssembly in double precision by faust-rs, with the Newton loop
+      that exits as the original's does. Its output matches the original C++ to about -120 dB
+      (<a href="../results/results.md">results</a>). The source is a test signal at 1.0 = 5 V; the filter runs at the page's
+      sample rate. Quality switches between three compiled programs, and restarts the state at the DC operating point, as the
+      plugin does.</p>
+  </section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1000 @@
+{
+ "ok": true,
+ "versions": {
+  "faustprobe": "/Users/letz/Developpements/RUST/faust-rs/target/release/faustprobe: faustprobe 0.9.5",
+  "faust-rs": "/Users/letz/Developpements/RUST/faust-rs/target/release/faust-rs: faust-rs 0.9.5 (2ecf66f6 2026-11-08)",
+  "faust": "FAUST Version 2.92.5 / Source commit: f8d9a8d7e",
+  "faust-rs commit": "2ecf66f6 2026-11-08 impulse-tests: the recorded-bell fit timed against the CPU (with uncommitted changes)",
+  "C++ compiler": "Apple clang version 21.0.0 (clang-2100.4.1.1), flags `-std=c++17 -O3 -ffp-contract=off`",
+  "node": "v22.12.0"
+ },
+ "machine": "Apple M5, arm64, Darwin 25.6.0",
+ "core": [
+  {
+   "frames": 24000,
+   "peak": 0.6309266614355198,
+   "max_err": 4.901707176263592e-08,
+   "at": 23999,
+   "db": -142.19263033426995,
+   "rms_db": -147.5822112724177,
+   "finite": true,
+   "jack": "A",
+   "newton": "24000 ticks, mean 2.123 iterations, max 5; histogram 2:21400 3:2250 4:336 5:14",
+   "ok": true
+  },
+  {
+   "frames": 24000,
+   "peak": 0.8359018141701314,
+   "max_err": 5.181742286294866e-08,
+   "at": 23999,
+   "db": -144.153589164325,
+   "rms_db": -149.4425867460902,
+   "finite": true,
+   "jack": "B",
+   "newton": "24000 ticks, mean 2.118 iterations, max 5; histogram 2:21638 3:1914 4:434 5:14",
+   "ok": true
+  },
+  {
+   "frames": 24000,
+   "peak": 0.9044034555859983,
+   "max_err": 1.9406759299523887e-07,
+   "at": 23999,
+   "db": -133.36818387349348,
+   "rms_db": -137.8633230902304,
+   "finite": true,
+   "jack": "C",
+   "newton": "24000 ticks, mean 1.472 iterations, max 6; histogram 1:15886 2:5359 3:2321 4:420 6:14",
+   "ok": true
+  }
+ ],
+ "plugin": [
+  {
+   "name": "default 1x",
+   "quality": 1,
+   "newton": "96000 ticks, mean 2.059 iterations, max 5; histogram 2:91053 3:4291 4:547 5:109",
+   "tol_db": -110.0,
+   "peak": 0.6372857140300424,
+   "frames": 96000,
+   "self_db": -168.17599181445502,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.6372857140300424,
+    "max_err": 2.472207768361434e-07,
+    "at": 95134,
+    "db": -128.2249843257599,
+    "rms_db": -131.85103606766742,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.6372857140300424,
+    "max_err": 2.472207652065572e-07,
+    "at": 95134,
+    "db": -128.22498473435542,
+    "rms_db": -131.8510361236744,
+    "finite": true,
+    "l_r": 5.109801470837283e-14,
+    "ok": true
+   },
+   "forms_db": -260.31612656058775,
+   "ok": true
+  },
+  {
+   "name": "default 2x",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.047 iterations, max 4; histogram 2:183647 3:7587 4:766",
+   "tol_db": -110.0,
+   "peak": 0.6369425470944042,
+   "frames": 96000,
+   "self_db": -168.17937943841196,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.6369425470944042,
+    "max_err": 5.853620159701478e-07,
+    "at": 95135,
+    "db": -120.73351445089935,
+    "rms_db": -124.33345512714119,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.6369425470944042,
+    "max_err": 5.853620019535821e-07,
+    "at": 95135,
+    "db": -120.73351465888406,
+    "rms_db": -124.33345513338729,
+    "finite": true,
+    "l_r": 1.1017575740623897e-13,
+    "ok": true
+   },
+   "forms_db": -254.70052224527888,
+   "ok": true
+  },
+  {
+   "name": "default 4x",
+   "quality": 4,
+   "newton": "384000 ticks, mean 2.944 iterations, max 4; histogram 2:22450 3:360784 4:766",
+   "tol_db": -110.0,
+   "peak": 0.63677636250091,
+   "frames": 96000,
+   "self_db": -168.1704832426197,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.63677636250091,
+    "max_err": 1.1948201293632277e-06,
+    "at": 95135,
+    "db": -114.5336880627171,
+    "rms_db": -118.10332081390325,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.63677636250091,
+    "max_err": 1.194820118295692e-06,
+    "at": 95135,
+    "db": -114.53368814317389,
+    "rms_db": -118.103320824807,
+    "finite": true,
+    "l_r": 1.428301921180264e-13,
+    "ok": true
+   },
+   "forms_db": -252.2458718160638,
+   "ok": true
+  },
+  {
+   "name": "BP res 0.7 4x",
+   "quality": 4,
+   "newton": "384000 ticks, mean 2.965 iterations, max 4; histogram 2:15950 3:365427 4:2623",
+   "tol_db": -110.0,
+   "peak": 1.0458841421296468,
+   "frames": 96000,
+   "self_db": -171.24633621452523,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 1.0458841421296468,
+    "max_err": 1.2042631332143117e-06,
+    "at": 95134,
+    "db": -118.77524373893613,
+    "rms_db": -122.31837094121377,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 1.0458841421296468,
+    "max_err": 1.2042630729292014e-06,
+    "at": 95134,
+    "db": -118.77524417374958,
+    "rms_db": -122.31837097604398,
+    "finite": true,
+    "l_r": 2.1561485236132327e-13,
+    "ok": true
+   },
+   "forms_db": -253.3324153768875,
+   "ok": true
+  },
+  {
+   "name": "HP 1x",
+   "quality": 1,
+   "newton": "96000 ticks, mean 2.066 iterations, max 5; histogram 2:90503 3:4732 4:656 5:109",
+   "tol_db": -110.0,
+   "peak": 1.0274276191638454,
+   "frames": 96000,
+   "self_db": -172.2000353342499,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 1.0274276191638454,
+    "max_err": 2.76600601145649e-07,
+    "at": 95138,
+    "db": -131.3979623309301,
+    "rms_db": -135.01444065448064,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 1.0274276191638454,
+    "max_err": 2.7660060131218245e-07,
+    "at": 95138,
+    "db": -131.3979623257006,
+    "rms_db": -135.01444065796647,
+    "finite": true,
+    "l_r": 6.233381866227461e-14,
+    "ok": true
+   },
+   "forms_db": -264.432161656705,
+   "ok": true
+  },
+  {
+   "name": "LP closed",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.007 iterations, max 3; histogram 2:190681 3:1319",
+   "tol_db": -110.0,
+   "peak": 0.003592317975490345,
+   "frames": 96000,
+   "self_db": -196.0639865644495,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.003592317975490345,
+    "max_err": 5.1621034366636015e-08,
+    "at": 95466,
+    "db": -125.74346594887609,
+    "rms_db": -130.4177740669365,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.003592317975490345,
+    "max_err": 5.162105894075588e-08,
+    "at": 95466,
+    "db": -125.74346181397169,
+    "rms_db": -130.41777404431897,
+    "finite": true,
+    "l_r": 2.7802087888828542e-14,
+    "ok": true
+   },
+   "forms_db": -238.42036376837004,
+   "ok": true
+  },
+  {
+   "name": "CV -3 V, trim 0.225",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.118 iterations, max 3; histogram 2:169339 3:22661",
+   "tol_db": -110.0,
+   "peak": 0.22622433124649152,
+   "frames": 96000,
+   "self_db": -167.81007565195878,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.22622433124649152,
+    "max_err": 3.8841225047554773e-07,
+    "at": 95258,
+    "db": -115.30492787998071,
+    "rms_db": -119.98837805833146,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.22622433124649152,
+    "max_err": 3.884122688792291e-07,
+    "at": 95258,
+    "db": -115.30492746842741,
+    "rms_db": -119.98837743826167,
+    "finite": true,
+    "l_r": 1.385142001097961e-13,
+    "ok": true
+   },
+   "forms_db": -241.31933936273128,
+   "ok": true
+  },
+  {
+   "name": "scream 2x (res 1, +24 dB)",
+   "quality": 2,
+   "newton": "192000 ticks, mean 5.288 iterations, max 13; histogram 4:41353 5:82646 6:45673 7:16508 8:5547 9:123 10:89 11:27 12:24 13:10",
+   "tol_db": -70.0,
+   "peak": 1.0524931906021937,
+   "frames": 96000,
+   "self_db": -16.912709568497494,
+   "mode": "descriptors",
+   "repeat": {
+    "frames": 96000,
+    "peak": 1.0524931906021937,
+    "max_err": 1.0665794037195924,
+    "at": 59810,
+    "db": 0.11547796432595193,
+    "rms_db": -34.464474792703946,
+    "finite": true,
+    "l_r": 0.0,
+    "ref_desc": [
+     0.11800526357352825,
+     3423.797417122248
+    ],
+    "faust_desc": [
+     [
+      0.11765347399116408,
+      3423.5755658259327
+     ],
+     [
+      0.11765347399116408,
+      3423.5755658259327
+     ]
+    ],
+    "spread": [
+     9.81490499819826e-05,
+     0.04431852182824514
+    ],
+    "bound": [
+     0.05,
+     17.11898708561124
+    ],
+    "dev": [
+     0.0003517895823641759,
+     0.22185129631543532
+    ],
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 1.0524931906021937,
+    "max_err": 1.066579385532762,
+    "at": 59810,
+    "db": 0.11547781621808353,
+    "rms_db": -34.46447510887016,
+    "finite": true,
+    "l_r": 6.267749041999338e-08,
+    "ref_desc": [
+     0.11800526357352825,
+     3423.797417122248
+    ],
+    "faust_desc": [
+     [
+      0.11765347395207329,
+      3423.575565775086
+     ],
+     [
+      0.117653473932496,
+      3423.5755657510063
+     ]
+    ],
+    "spread": [
+     9.81490499819826e-05,
+     0.04431852182824514
+    ],
+    "bound": [
+     0.05,
+     17.11898708561124
+    ],
+    "dev": [
+     0.0003517896410322463,
+     0.2218513712418826
+    ],
+    "ok": true
+   },
+   "forms_db": -135.04172689536952,
+   "ok": true
+  },
+  {
+   "name": "scream 4x (res 1, +24 dB)",
+   "quality": 4,
+   "newton": "384000 ticks, mean 4.608 iterations, max 10; histogram 3:1611 4:174105 5:182369 6:25250 7:378 8:210 9:75 10:2",
+   "tol_db": -70.0,
+   "peak": 1.05249319060206,
+   "frames": 96000,
+   "self_db": -55.465990158982635,
+   "mode": "descriptors",
+   "repeat": {
+    "frames": 96000,
+    "peak": 1.05249319060206,
+    "max_err": 0.10047949132391143,
+    "at": 90969,
+    "db": -20.40283733877991,
+    "rms_db": -67.13494660929187,
+    "finite": true,
+    "l_r": 0.0,
+    "ref_desc": [
+     0.11720432033168424,
+     3357.0314072231104
+    ],
+    "faust_desc": [
+     [
+      0.11719432833207429,
+      3357.0315012452065
+     ],
+     [
+      0.11719432833207429,
+      3357.0315012452065
+     ]
+    ],
+    "spread": [
+     1.9473477898268587e-07,
+     1.5715424979134696e-05
+    ],
+    "bound": [
+     0.05,
+     16.785157036115553
+    ],
+    "dev": [
+     9.99199960995123e-06,
+     9.402209616382606e-05
+    ],
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 1.05249319060206,
+    "max_err": 0.10047950563948255,
+    "at": 90969,
+    "db": -20.402836101279,
+    "rms_db": -67.13494542780836,
+    "finite": true,
+    "l_r": 4.0761464259464475e-08,
+    "ref_desc": [
+     0.11720432033168424,
+     3357.0314072231104
+    ],
+    "faust_desc": [
+     [
+      0.1171943283305011,
+      3357.0315012449964
+     ],
+     [
+      0.11719432833441903,
+      3357.031501244649
+     ]
+    ],
+    "spread": [
+     1.9473477898268587e-07,
+     1.5715424979134696e-05
+    ],
+    "bound": [
+     0.05,
+     16.785157036115553
+    ],
+    "dev": [
+     9.992001183137256e-06,
+     9.402188607054995e-05
+    ],
+    "ok": true
+   },
+   "forms_db": -151.9972211189088,
+   "ok": true
+  },
+  {
+   "name": "max cut, res 1, +24 dB 4x",
+   "quality": 4,
+   "newton": "384000 ticks, mean 3.873 iterations, max 8; histogram 3:55817 4:323022 5:3739 6:984 7:329 8:109",
+   "tol_db": -70.0,
+   "peak": 1.0524931905627737,
+   "frames": 96000,
+   "self_db": -171.35665561371295,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 1.0524931905627737,
+    "max_err": 1.1672900079306991e-06,
+    "at": 95579,
+    "db": -119.10081053515492,
+    "rms_db": -133.4738156808166,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 1.0524931905627737,
+    "max_err": 1.1672899634385114e-06,
+    "at": 95579,
+    "db": -119.10081086622452,
+    "rms_db": -133.4738157150236,
+    "finite": true,
+    "l_r": 1.2979894936648861e-13,
+    "ok": true
+   },
+   "forms_db": -256.5517990449411,
+   "ok": true
+  }
+ ],
+ "presets": [
+  {
+   "name": "Init",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.047 iterations, max 4; histogram 2:183647 3:7587 4:766",
+   "tol_db": -110.0,
+   "peak": 0.6369425470944042,
+   "frames": 96000,
+   "self_db": -168.17937943841196,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.6369425470944042,
+    "max_err": 5.853620159701478e-07,
+    "at": 95135,
+    "db": -120.73351445089935,
+    "rms_db": -124.33345512714119,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.6369425470944042,
+    "max_err": 5.853620019535821e-07,
+    "at": 95135,
+    "db": -120.73351465888406,
+    "rms_db": -124.33345513338729,
+    "finite": true,
+    "l_r": 1.1017575740623897e-13,
+    "ok": true
+   },
+   "forms_db": -254.70052224527888,
+   "ok": true
+  },
+  {
+   "name": "Warm Low-pass",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.062 iterations, max 4; histogram 2:180899 3:10225 4:876",
+   "tol_db": -110.0,
+   "peak": 0.8338994392165531,
+   "frames": 96000,
+   "self_db": -169.31691270822233,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.8338994392165531,
+    "max_err": 5.85881880621475e-07,
+    "at": 95138,
+    "db": -123.0660722970019,
+    "rms_db": -126.87839116560674,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.8338994392165531,
+    "max_err": 5.858818752091377e-07,
+    "at": 95138,
+    "db": -123.06607237724154,
+    "rms_db": -126.87839117076888,
+    "finite": true,
+    "l_r": 9.00390872971002e-14,
+    "ok": true
+   },
+   "forms_db": -258.9564008328258,
+   "ok": true
+  },
+  {
+   "name": "Acid Squelch",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.529 iterations, max 5; histogram 2:95453 3:91953 4:4158 5:436",
+   "tol_db": -110.0,
+   "peak": 0.7451020958800125,
+   "frames": 96000,
+   "self_db": -157.08101897265217,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.7451020958800125,
+    "max_err": 4.3788716236337066e-07,
+    "at": 95132,
+    "db": -124.61707143892795,
+    "rms_db": -131.2017824344146,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.7451020958800125,
+    "max_err": 4.378870967491899e-07,
+    "at": 95132,
+    "db": -124.61707274044493,
+    "rms_db": -131.20178271106838,
+    "finite": true,
+    "l_r": 3.561317907241346e-13,
+    "ok": true
+   },
+   "forms_db": -246.45349298543005,
+   "ok": true
+  },
+  {
+   "name": "Vocal Band",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.106 iterations, max 4; histogram 2:173755 3:16169 4:2076",
+   "tol_db": -110.0,
+   "peak": 1.4760059171161473,
+   "frames": 96000,
+   "self_db": -168.5337420921092,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 1.4760059171161473,
+    "max_err": 8.416150697465596e-07,
+    "at": 95139,
+    "db": -124.8794919054859,
+    "rms_db": -128.39471171111597,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 1.4760059171161473,
+    "max_err": 8.416151108248116e-07,
+    "at": 95139,
+    "db": -124.87949148153774,
+    "rms_db": -128.3947118003679,
+    "finite": true,
+    "l_r": 2.4517540775370605e-13,
+    "ok": true
+   },
+   "forms_db": -253.69154379160207,
+   "ok": true
+  },
+  {
+   "name": "Thin High-pass",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.029 iterations, max 4; histogram 2:187162 3:4181 4:657",
+   "tol_db": -110.0,
+   "peak": 1.0376633785531457,
+   "frames": 96000,
+   "self_db": -171.62664762207302,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 1.0376633785531457,
+    "max_err": 7.297456182109308e-07,
+    "at": 95999,
+    "db": -123.05769987718149,
+    "rms_db": -126.60597211545851,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 1.0376633785531457,
+    "max_err": 7.297456314546771e-07,
+    "at": 95999,
+    "db": -123.05769971954612,
+    "rms_db": -126.6059721592234,
+    "finite": true,
+    "l_r": 8.372035703585468e-14,
+    "ok": true
+   },
+   "forms_db": -261.7590555125996,
+   "ok": true
+  },
+  {
+   "name": "Bright Air",
+   "quality": 2,
+   "newton": "192000 ticks, mean 1.244 iterations, max 4; histogram 1:149570 2:38803 3:2751 4:876",
+   "tol_db": -110.0,
+   "peak": 0.9063520902974743,
+   "frames": 96000,
+   "self_db": -168.3769262629034,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.9063520902974743,
+    "max_err": 1.0314459081865388e-06,
+    "at": 95999,
+    "db": -118.87700966719662,
+    "rms_db": -122.50933713768475,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.9063520902974743,
+    "max_err": 1.0314458614355242e-06,
+    "at": 95999,
+    "db": -118.87701006089071,
+    "rms_db": -122.50933752565707,
+    "finite": true,
+    "l_r": 1.7345369932031396e-13,
+    "ok": true
+   },
+   "forms_db": -255.69895584841993,
+   "ok": true
+  },
+  {
+   "name": "Dark Drone",
+   "quality": 2,
+   "newton": "192000 ticks, mean 2.241 iterations, max 6; histogram 2:147356 3:43330 4:1096 5:109 6:109",
+   "tol_db": -110.0,
+   "peak": 1.051761595451897,
+   "frames": 96000,
+   "self_db": -158.88770534329774,
+   "mode": "samples",
+   "repeat": {
+    "frames": 96000,
+    "peak": 1.051761595451897,
+    "max_err": 6.766409481329116e-07,
+    "at": 95143,
+    "db": -123.83118064739077,
+    "rms_db": -132.83917174628544,
+    "finite": true,
+    "l_r": 0.0,
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 1.051761595451897,
+    "max_err": 6.766410091674224e-07,
+    "at": 95143,
+    "db": -123.83117986390432,
+    "rms_db": -132.8391712084968,
+    "finite": true,
+    "l_r": 2.304822999121825e-13,
+    "ok": true
+   },
+   "forms_db": -253.4027134254867,
+   "ok": true
+  },
+  {
+   "name": "Self-oscillation",
+   "quality": 4,
+   "newton": "384000 ticks, mean 3.250 iterations, max 4; histogram 3:287894 4:96106",
+   "tol_db": -110.0,
+   "peak": 0.5274952636899463,
+   "frames": 96000,
+   "self_db": 6.020433695561428,
+   "mode": "descriptors",
+   "repeat": {
+    "frames": 96000,
+    "peak": 0.5274952636899463,
+    "max_err": 1.0549637969340018,
+    "at": 68101,
+    "db": 6.020379834863404,
+    "rms_db": 1.1521577594206183,
+    "finite": true,
+    "l_r": 0.0,
+    "ref_desc": [
+     -6.504430241412552,
+     1461.712691657172
+    ],
+    "faust_desc": [
+     [
+      -6.503980917207026,
+      1463.9874432384918
+     ],
+     [
+      -6.503980917207026,
+      1463.9874432384918
+     ]
+    ],
+    "spread": [
+     0.006364693836336421,
+     9.26479185118319
+    ],
+    "bound": [
+     0.05,
+     27.79437555354957
+    ],
+    "dev": [
+     0.00044932420552612484,
+     2.2747515813198333
+    ],
+    "ok": true
+   },
+   "unrolled": {
+    "frames": 96000,
+    "peak": 0.5274952636899463,
+    "max_err": 1.0549704417266383,
+    "at": 27956,
+    "db": 6.020434543616361,
+    "rms_db": 1.259231908958709,
+    "finite": true,
+    "l_r": 1.0549635769471546,
+    "ref_desc": [
+     -6.504430241412552,
+     1461.712691657172
+    ],
+    "faust_desc": [
+     [
+      -6.504528264567986,
+      1459.3528362910652
+     ],
+     [
+      -6.501723057136546,
+      1464.9185376541902
+     ]
+    ],
+    "spread": [
+     0.006364693836336421,
+     9.26479185118319
+    ],
+    "bound": [
+     0.05,
+     27.79437555354957
+    ],
+    "dev": [
+     0.002707184276006025,
+     3.2058459970182867
+    ],
+    "ok": true
+   },
+   "forms_db": 6.020437625625387,
+   "ok": true
+  }
+ ],
+ "cxx_backends": [
+  {
+   "frames": 48000,
+   "peak": 1.052309136572208,
+   "max_err": 2.155436412132339e-06,
+   "at": 47162,
+   "db": -113.77216251890589,
+   "rms_db": -121.68350573352093,
+   "finite": true,
+   "label": "faust (C++), unrolled",
+   "ok": true
+  },
+  {
+   "frames": 48000,
+   "peak": 1.052309136572208,
+   "max_err": 7.666038378539852e-07,
+   "at": 32326,
+   "db": -122.75144703998754,
+   "rms_db": -140.25210199229332,
+   "finite": true,
+   "label": "faust-rs -lang cpp, unrolled",
+   "ok": true
+  },
+  {
+   "frames": 48000,
+   "peak": 1.0523091365722081,
+   "max_err": 7.666036990761071e-07,
+   "at": 32326,
+   "db": -122.75144861238957,
+   "rms_db": -140.25210219922707,
+   "finite": true,
+   "label": "faust-rs -lang cpp, repeat",
+   "ok": true
+  },
+  {
+   "frames": 48000,
+   "peak": 1.0523043474319411,
+   "max_err": 1.4853091978572763e-08,
+   "at": 5,
+   "db": -157.0064898834164,
+   "rms_db": -169.12383053549487,
+   "finite": true,
+   "label": "faust-rs -lang wasm -double (web/dsp/sp1x.wasm), node, repeat, 1x",
+   "ok": true
+  },
+  {
+   "frames": 48000,
+   "peak": 1.0523091365722081,
+   "max_err": 1.5125416252814716e-08,
+   "at": 6,
+   "db": -156.8487201164483,
+   "rms_db": -169.12164543309117,
+   "finite": true,
+   "label": "faust-rs -lang wasm -double (web/dsp/sp2x.wasm), node, repeat, 2x",
+   "ok": true
+  },
+  {
+   "frames": 48000,
+   "peak": 1.0523053541546827,
+   "max_err": 1.5137889941563287e-08,
+   "at": 6,
+   "db": -156.8415287336866,
+   "rms_db": -169.1280007324096,
+   "finite": true,
+   "label": "faust-rs -lang wasm -double (web/dsp/sp4x.wasm), node, repeat, 4x",
+   "ok": true
+  }
+ ],
+ "timing": [
+  {
+   "impl": "C++ original (SPModel.h)",
+   "quality": 1,
+   "line": "C++ original: 5.000 s of stereo audio at 48000 Hz x1 in 0.0955 s: 52.4x real time, 397.9 ns per stereo sample",
+   "newton": "480000 ticks, mean 2.060 iterations, max 5; histogram 2:455256 3:21452 4:2744 5:548"
+  },
+  {
+   "impl": "Faust, faust-rs -lang cpp, repeat",
+   "quality": 1,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 0.0931 s: 53.7x real time, 387.9 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust-rs -lang cpp, unrolled (12)",
+   "quality": 1,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 0.4433 s: 11.3x real time, 1847.2 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust (C++) -lang cpp, unrolled (12)",
+   "quality": 1,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 0.4482 s: 11.2x real time, 1867.5 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust-rs -lang wasm, repeat, under node",
+   "quality": 1,
+   "line": "Faust wasm (node v22.12.0): 5.000 s of stereo audio at 48000 Hz in 0.2594 s: 19.3x real time"
+  },
+  {
+   "impl": "Faust, faustprobe (Cranelift JIT), repeat",
+   "quality": 1,
+   "line": "time: compute 194 ms for 5.00 s of audio (240000 frames in 3750 blocks): 25.8x real time"
+  },
+  {
+   "impl": "Faust, faustprobe (Cranelift JIT), unrolled",
+   "quality": 1,
+   "line": "time: compute 540 ms for 5.00 s of audio (240000 frames in 3750 blocks): 9.25x real time"
+  },
+  {
+   "impl": "C++ original (SPModel.h)",
+   "quality": 2,
+   "line": "C++ original: 5.000 s of stereo audio at 48000 Hz x2 in 0.1893 s: 26.4x real time, 788.8 ns per stereo sample",
+   "newton": "960000 ticks, mean 2.048 iterations, max 4; histogram 2:918214 3:37944 4:3842"
+  },
+  {
+   "impl": "Faust, faust-rs -lang cpp, repeat",
+   "quality": 2,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 0.1842 s: 27.1x real time, 767.4 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust-rs -lang cpp, unrolled (12)",
+   "quality": 2,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 0.8724 s: 5.7x real time, 3635.0 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust (C++) -lang cpp, unrolled (12)",
+   "quality": 2,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 0.8185 s: 6.1x real time, 3410.6 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust-rs -lang wasm, repeat, under node",
+   "quality": 2,
+   "line": "Faust wasm (node v22.12.0): 5.000 s of stereo audio at 48000 Hz in 0.4892 s: 10.2x real time"
+  },
+  {
+   "impl": "Faust, faustprobe (Cranelift JIT), repeat",
+   "quality": 2,
+   "line": "time: compute 371 ms for 5.00 s of audio (240000 frames in 3750 blocks): 13.5x real time"
+  },
+  {
+   "impl": "Faust, faustprobe (Cranelift JIT), unrolled",
+   "quality": 2,
+   "line": "time: compute 1.06 s for 5.00 s of audio (240000 frames in 3750 blocks): 4.73x real time"
+  },
+  {
+   "impl": "C++ original (SPModel.h)",
+   "quality": 4,
+   "line": "C++ original: 5.000 s of stereo audio at 48000 Hz x4 in 0.5421 s: 9.2x real time, 2258.8 ns per stereo sample",
+   "newton": "1920000 ticks, mean 2.944 iterations, max 4; histogram 2:112250 3:1803908 4:3842"
+  },
+  {
+   "impl": "Faust, faust-rs -lang cpp, repeat",
+   "quality": 4,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 0.4793 s: 10.4x real time, 1997.0 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust-rs -lang cpp, unrolled (12)",
+   "quality": 4,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 1.7492 s: 2.9x real time, 7288.3 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust (C++) -lang cpp, unrolled (12)",
+   "quality": 4,
+   "line": "Faust (C++ backend): 5.000 s of stereo audio at 48000 Hz in 1.6694 s: 3.0x real time, 6956.0 ns per stereo sample"
+  },
+  {
+   "impl": "Faust, faust-rs -lang wasm, repeat, under node",
+   "quality": 4,
+   "line": "Faust wasm (node v22.12.0): 5.000 s of stereo audio at 48000 Hz in 1.1415 s: 4.4x real time"
+  },
+  {
+   "impl": "Faust, faustprobe (Cranelift JIT), repeat",
+   "quality": 4,
+   "line": "time: compute 929 ms for 5.00 s of audio (240000 frames in 3750 blocks): 5.38x real time"
+  },
+  {
+   "impl": "Faust, faustprobe (Cranelift JIT), unrolled",
+   "quality": 4,
+   "line": "time: compute 2.09 s for 5.00 s of audio (240000 frames in 3750 blocks): 2.39x real time"
+  }
+ ]
+}

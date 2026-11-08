@@ -1,0 +1,10 @@
+{
+  "Init":             { "Response": 0, "Frequency": 0.51, "Resonance": 0.40, "CV_offset": 0, "Input_level": 0,   "Output": -6,  "V_oct_trim": 0.45 },
+  "Warm Low-pass":    { "Response": 0, "Frequency": 0.46, "Resonance": 0.30, "CV_offset": 0, "Input_level": 3,   "Output": -6,  "V_oct_trim": 0.45 },
+  "Acid Squelch":     { "Response": 0, "Frequency": 0.49, "Resonance": 0.85, "CV_offset": 0, "Input_level": 9,   "Output": -9,  "V_oct_trim": 0.45 },
+  "Vocal Band":       { "Response": 1, "Frequency": 0.53, "Resonance": 0.70, "CV_offset": 0, "Input_level": 0,   "Output": -3,  "V_oct_trim": 0.45 },
+  "Thin High-pass":   { "Response": 2, "Frequency": 0.55, "Resonance": 0.30, "CV_offset": 0, "Input_level": 0,   "Output": -6,  "V_oct_trim": 0.45 },
+  "Bright Air":       { "Response": 2, "Frequency": 0.69, "Resonance": 0.55, "CV_offset": 0, "Input_level": -6,  "Output": -3,  "V_oct_trim": 0.45 },
+  "Dark Drone":       { "Response": 0, "Frequency": 0.32, "Resonance": 0.60, "CV_offset": 0, "Input_level": 12,  "Output": -6,  "V_oct_trim": 0.45 },
+  "Self-oscillation": { "Response": 0, "Frequency": 0.44, "Resonance": 0.97, "CV_offset": 0, "Input_level": 0,   "Output": -12, "V_oct_trim": 0.45 }
+}
