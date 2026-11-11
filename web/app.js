@@ -93,7 +93,7 @@ function buildFace() {
     const t = text(svg, 60, y, name, { size: 10, weight: "bold", opacity: 0.55, anchor: "start" });
     hairlines.push([t, el("rect", { y, height: 1, fill: C.silk, "fill-opacity": 0.16 }, svg)]);
   }
-  const footer = text(svg, W / 2, FACE - 8, "SOFIA VALLEJO\u00a0 / \u00a0IEM GRAZ\u00a0\u00a0 - \u00a0\u00a0FAUST PORT", { size: 9, weight: "bold", opacity: 0.8 });
+  const footer = text(svg, W / 2, FACE - 8, "GRAME\u00a0\u00a0 - \u00a0\u00a0FAUST PORT", { size: 9, weight: "bold", opacity: 0.8 });
   footer.setAttribute("class", "footer");
   for (const k of KNOBS) buildKnob(svg, k);
   const bubble = el("g", { class: "bubble", visibility: "hidden" }, svg);

@@ -263,10 +263,10 @@ public:
         presetBox.addSectionHeading("Factory");
         for (int i = 0; i < proc.getNumPrograms(); ++i) presetBox.addItem(proc.getProgramName(i), i + 1);
 
-        authorLink.setButtonText("SOFIA VALLEJO  /  IEM GRAZ   -   FAUST PORT");
+        authorLink.setButtonText("GRAME   -   FAUST PORT");
         authorLink.setFont(FontOptions(9.0f, Font::bold), false, Justification::centred);
         authorLink.setColour(HyperlinkButton::textColourId, silk.withAlpha(0.8f));
-        authorLink.setURL(URL("https://github.com/sofiavallejob/steiner-parker-filter"));
+        authorLink.setURL(URL("https://github.com/sletz/faust-steiner-parker"));
         content.addAndMakeVisible(authorLink);
 
         setResizable(true, true);
